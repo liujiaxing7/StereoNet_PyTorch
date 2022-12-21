@@ -56,6 +56,7 @@ class StereoNet(pl.LightningModule):
         for _ in range(self.k_refinement_layers):
             self.refiners.append(Refinement())
 
+
     def forward_pyramid(self, sample: st.Sample_Torch, side: str = 'left') -> List[torch.Tensor]:
         """
         This is the heart of the forward pass.  Given a Dictionary keyed with 'left' and 'right' tensors, perform the feature extraction, cost volume estimation, cascading
@@ -89,10 +90,20 @@ class StereoNet(pl.LightningModule):
 
         return disparity_pyramid
 
-    def forward(self, sample: st.Sample_Torch) -> torch.Tensor:  # type: ignore[override] # pylint: disable=arguments-differ
+    # def forward(self, sample: st.Sample_Torch) -> torch.Tensor:  # type: ignore[override] # pylint: disable=arguments-differ
+    #     """
+    #     Do the forward pass using forward_pyramid (for the left disparity map) and return only the full resolution map.
+    #     """
+    #     disparities = self.forward_pyramid(sample, side='left')
+    #     return disparities[-1]  # Ultimately, only output the last refined disparity
+
+    def forward(self, left , right) -> torch.Tensor:  # type: ignore[override] # pylint: disable=arguments-differ
         """
         Do the forward pass using forward_pyramid (for the left disparity map) and return only the full resolution map.
         """
+        sample = {'left': left,  # [height, width, channel],
+                  'right': right  # [height, width, channel]
+                  }
         disparities = self.forward_pyramid(sample, side='left')
         return disparities[-1]  # Ultimately, only output the last refined disparity
 
